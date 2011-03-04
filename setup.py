@@ -97,6 +97,7 @@ setup(
     test_suite='nose.collector',
     tests_require=[
         'WebTest',
+        'coverage',
         ],
 
     packages=find_packages(exclude=['ez_setup']),
