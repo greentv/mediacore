@@ -133,11 +133,19 @@ class abstractproperty(property):
     _isabstract = True
 
 def isabstract(x):
-    """Return True if given an abstract class, method, or property."""
+    """ Return True if given an abstract class, method, or property.
+
+        Class: Checks it has been registered in the metaclass with
+               abstract attributes
+
+        property|method: checks it has an '_isabstract' attribute
+                         with a value of ``True``
+
+        Otherwise raise a NotImplementedError
+    """
     if isinstance(x, AbstractMetaClass):
-        return x in AbstractMetaClass._registry \
-            and not AbstractMetaClass._abstracts.get(x, ())
-    elif isinstance(x, (abstractmethod, abstractproperty)):
+        return bool(AbstractMetaClass._abstracts.get(x))
+    elif hasattr(x, '_isabstract'):
         return x._isabstract
     else:
         raise NotImplementedError
