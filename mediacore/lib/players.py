@@ -95,7 +95,7 @@ class AbstractPlayer(AbstractClass):
 
         Each player has a client-side component to provide a consistent
         way of initializing and interacting with the player. For more
-        information see ``mediacore/public/scripts/mcore/players/``.
+        information see :file:`mediacore/public/scripts/mcore/players/`.
 
         :rtype: ``unicode``
         :returns: A javascript string which will evaluate to an instance
@@ -103,7 +103,7 @@ class AbstractPlayer(AbstractClass):
 
         """
 
-    def __init__(self, media, uris, data=None, width=400, height=225,
+    def __init__(self, media, uris, data=None, width=None, height=None,
                  autoplay=False, autobuffer=False, qualified=False, **kwargs):
         """Initialize the player with the media that it will be playing.
 
@@ -121,8 +121,8 @@ class AbstractPlayer(AbstractClass):
         self.media = media
         self.uris = uris
         self.data = data or {}
-        self.width = width
-        self.height = height
+        self.width = width or 400
+        self.height = height or 225
         self.autoplay = autoplay
         self.autobuffer = autobuffer
         self.qualified = qualified
@@ -500,6 +500,7 @@ class YoutubeFlashPlayer(AbstractFlashEmbedPlayer):
         'rel': 0,
         'showsearch': 0,
         'showinfo': 0,
+        'autohide': 0,
     }
 
     _height_diff = 25
@@ -719,7 +720,8 @@ class JWPlayer(AbstractHTML5Player):
     """A unicode display name for the class, to be used in the settings UI."""
 
     supported_containers = AbstractHTML5Player.supported_containers \
-                         | AbstractRTMPFlashPlayer.supported_containers
+                         | AbstractRTMPFlashPlayer.supported_containers \
+                         | set(['xml', 'srt'])
 #    supported_containers.add('youtube')
     supported_types = set([AUDIO, VIDEO, AUDIO_DESC, CAPTIONS])
     supported_schemes = set([HTTP, RTMP])
@@ -738,6 +740,7 @@ class JWPlayer(AbstractHTML5Player):
         flash_uris = [uri
             for uri, p in izip(uris, AbstractRTMPFlashPlayer.can_play(uris)) if p]
         super(JWPlayer, self).__init__(media, html5_uris, **kwargs)
+        self.all_uris = uris
         self.flash_uris = flash_uris
         self.rtmp_uris = pick_uris(flash_uris, scheme=RTMP)
 
@@ -807,12 +810,12 @@ class JWPlayer(AbstractHTML5Player):
 
     def plugins(self):
         plugins = {}
-        audio_desc = self.get_uris(type=AUDIO_DESC)
-        captions = self.get_uris(type=CAPTIONS)
+        audio_desc = pick_uris(self.all_uris, type=AUDIO_DESC)
+        captions = pick_uris(self.all_uris, type=CAPTIONS)
         if audio_desc:
-            plugins['audiodescription'] = {'file': audio_desc[0].uri}
+            plugins['audiodescription'] = {'file': str(audio_desc[0])}
         if captions:
-            plugins['captions'] = {'file': captions[0].uri}
+            plugins['captions'] = {'file': str(captions[0])}
         return plugins
 
     def flash_override_playlist(self):
@@ -862,6 +865,9 @@ class SublimePlayer(AbstractHTML5Player):
     default_data = {'script_tag': ''}
     """An optional default data dictionary for user preferences."""
 
+    supported_types = set([VIDEO])
+    """Sublime does not support AUDIO at this time."""
+
     supports_resizing = False
     """A flag that allows us to mark the few players that can't be resized.
 
@@ -873,6 +879,9 @@ class SublimePlayer(AbstractHTML5Player):
         attrs = super(SublimePlayer, self).html5_attrs()
         attrs['class'] = (attrs.get('class', '') + ' sublime').strip()
         return attrs
+
+    def render_js_player(self):
+        return Markup('new mcore.SublimePlayer()')
 
     def render_markup(self, error_text=None):
         """Render the XHTML markup for this player instance.

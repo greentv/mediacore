@@ -169,7 +169,9 @@ mcore.players.JWPlayer.prototype.decorateInternal = function(element) {
   }
 
   // A unique ID is required by the JW embedder js.
-  if (!contentElement.id) {
+  if (contentElement.id) {
+    this.setId(contentElement.id);
+  } else {
     contentElement.id = this.getId();
   }
 
@@ -227,11 +229,9 @@ mcore.players.JWPlayer.prototype.handlePlayerError = function() {
  * @return {Element} Element to contain child elements (null if none).
  */
 mcore.players.JWPlayer.prototype.getContentElement = function() {
-  // JWPlayer always appends the flash object to the container.
-  // We must be careful to place the player object in the same position
-  // in case this behaviour changes.
-  return this.dom_.getLastElementChild(this.getElement());
+  return this.dom_.getElement(this.getId());
 };
+
 
 /**
  * Resize the player element to the given dimensions.
@@ -269,7 +269,9 @@ mcore.players.JWPlayer.prototype.setSize = function(w, opt_h) {
     //      call to resize() will be ignored. So we delay until onReady, but
     //      we can improve the situation by resizing the <object> immediately.
     this.pendingResize_ = [w, h];
-    goog.style.setSize(this.getContentElement(), w, h);
+    var videoOrObjectTag = this.getContentElement();
+    videoOrObjectTag.width = w;
+    videoOrObjectTag.height = h;
   }
   return this;
 };

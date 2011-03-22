@@ -26,7 +26,7 @@ from urllib import quote, unquote, urlencode
 from urlparse import urlparse
 
 from genshi.core import Stream
-from pylons import app_globals, config, request, response
+from pylons import app_globals, config, request, response, translator
 from webhelpers import date, feedgenerator, html, number, misc, text, paginate, containers
 from webhelpers.html import tags
 from webhelpers.html.builder import literal
@@ -57,19 +57,17 @@ imports = [
     'thumb', # XXX: imported from  mediacore.lib.thumbnails, for template use.
     'meta_description', 'meta_keywords', # XXX: imported from mediacore.plugin.events
     'meta_robots_noindex', 'page_title', # XXX: imported from mediacore.plugin.events
-    'format_date, format_datetime, format_time',
+    'format_date', 'format_datetime', 'format_time',
 ]
 
 defined = [
-    'append_class_attr', 'delete_files', 'doc_link',
-    'duration_from_seconds', 'duration_to_seconds',
-    'excess_whitespace', 'filter_library_controls',
+    'append_class_attr', 'best_translation', 'can_edit', 'delete_files',
+    'doc_link', 'duration_from_seconds', 'duration_to_seconds',
+    'filter_library_controls', 'filter_vulgarity',
     'get_featured_category', 'gravatar_from_email', 'is_admin', 'js',
     'pick_any_media_file', 'pick_podcast_media_file',
-    'pretty_file_size', 'redirect',
-    'store_transient_message', 'truncate',
-    'wrap_long_words',
-    'filter_vulgarity',
+    'pretty_file_size', 'redirect', 'store_transient_message',
+    'truncate', 'wrap_long_words',
 ]
 __all__ = imports + defined
 
@@ -246,17 +244,26 @@ def filter_library_controls(query, show='latest'):
 def is_admin():
     """Return True if the logged in user is a part of the Admins group.
 
-    This method will need to be replaced when we improve our user
+    TODO: This method will need to be replaced when we improve our user
     access controls.
+
+    :returns: Whether or not the current user is an Admin.
+    :rtype: bool
     """
     ident = request.environ.get('repoze.who.identity', {})
     groups = ident.get('groups', 0)
     return groups and any(group.lower() == 'admins' for group in groups)
 
 def can_edit(item):
-    """Return True if the logged in user is a part of the Admins group.
+    """Return True if the logged in user has the 'edit' permission.
 
-    NOTE: The item argument is provided for future use only.
+    :param item: When we improve our user access controls, this will be used
+                 to check edit permissions on a particular object.
+                 TODO: 'item' is currently an unimplemented argument.
+    :type item: unimplemented
+
+    :returns: Whether the current user has the 'edit' permission.
+    :rtype: bool
     """
     ident = request.environ.get('repoze.who.identity', {})
     perms = ident.get('permissions', 0)
@@ -354,11 +361,13 @@ def filter_vulgarity(text):
     """Return a sanitized version of the given string.
 
     Words are defined in the Comments settings and are
-    replaced with *'s representing the length of the filtered word.
+    replaced with \*'s representing the length of the filtered word.
 
     :param text: The string to be filtered.
+    :type text: str
+
     :returns: The filtered string.
-    :rtype: string
+    :rtype: str
 
     """
     vulgar_words = app_globals.settings.get('vulgarity_filtered_words', None)
@@ -371,3 +380,20 @@ def filter_vulgarity(text):
             return '*' * len(word)
         text = word_expr.sub(word_replacer, text)
     return text
+
+def best_translation(a, b):
+    """Return the best translation given a preferred and a fallback string.
+
+    If we have a translation for our preferred string 'a' or if we are using
+    English, return 'a'. Otherwise, return a translation for the fallback string 'b'.
+
+    :param a: The preferred string to translate.
+    :param b: The fallback string to translate.
+    :returns: The best translation
+    :rtype: string
+    """
+    translated_a = _(a)
+    if a != translated_a or translator.locale.language == 'en':
+        return translated_a
+    else:
+        return _(b)

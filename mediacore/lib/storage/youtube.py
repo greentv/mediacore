@@ -39,7 +39,7 @@ class YoutubeStorage(EmbedStorageEngine):
     )
     """A compiled pattern object that uses named groupings for matches."""
 
-    def _parse(self, url, id):
+    def _parse(self, url, **kwargs):
         """Return metadata for the given URL that matches :attr:`url_pattern`.
 
         :type url: unicode
@@ -51,6 +51,8 @@ class YoutubeStorage(EmbedStorageEngine):
         :returns: Any extracted metadata.
 
         """
+        id = kwargs['id']
+
         yt_service = gdata.youtube.service.YouTubeService()
         yt_service.ssl = False
         entry = yt_service.GetYouTubeVideoEntry(video_id=id)
@@ -70,12 +72,11 @@ class YoutubeStorage(EmbedStorageEngine):
             'type': VIDEO,
         }
 
-    def get_uris(self, file):
+    def get_uris(self, media_file):
         """Return a list of URIs from which the stored file can be accessed.
 
-        :type unique_id: unicode
-        :param unique_id: The identifying string for this file.
-
+        :type media_file: :class:`~mediacore.model.media.MediaFile`
+        :param media_file: The associated media file object.
         :rtype: list
         :returns: All :class:`StorageURI` tuples for this file.
 
@@ -84,13 +85,13 @@ class YoutubeStorage(EmbedStorageEngine):
         params = dict((k, int(v)) for k, v in params.iteritems())
         play_url = 'http://youtube%s.com/v/%s?%s' % (
             self._data.get('nocookie', False) and '-nocookie' or '',
-            file.unique_id,
+            media_file.unique_id,
             urlencode(params, True),
         )
-        web_url = 'http://youtube.com/watch?v=%s' % file.unique_id
+        web_url = 'http://youtube.com/watch?v=%s' % media_file.unique_id
         return [
-            StorageURI(file, 'youtube', play_url, None),
-            StorageURI(file, 'www', web_url, None),
+            StorageURI(media_file, 'youtube', play_url, None),
+            StorageURI(media_file, 'www', web_url, None),
         ]
 
 EmbedStorageEngine.register(YoutubeStorage)

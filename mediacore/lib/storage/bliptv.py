@@ -36,7 +36,7 @@ class BlipTVStorage(EmbedStorageEngine):
     url_pattern = re.compile(r'^(http(s?)://)?(\w+\.)?blip.tv/file/(?P<id>\d+)')
     """A compiled pattern object that uses named groupings for matches."""
 
-    def _parse(self, url, id):
+    def _parse(self, url, **kwargs):
         """Return metadata for the given URL that matches :attr:`url_pattern`.
 
         :type url: unicode
@@ -48,6 +48,7 @@ class BlipTVStorage(EmbedStorageEngine):
         :returns: Any extracted metadata.
 
         """
+        id = kwargs['id']
         req = Request('http://blip.tv/file/%s?skin=api' % id)
 
         try:
@@ -72,22 +73,21 @@ class BlipTVStorage(EmbedStorageEngine):
 #                        + int(xmltree.findtext('videobitrate') or 0) or None
         return meta
 
-    def get_uris(self, file):
+    def get_uris(self, media_file):
         """Return a list of URIs from which the stored file can be accessed.
 
-        :type unique_id: unicode
-        :param unique_id: The identifying string for this file.
-
+        :type media_file: :class:`~mediacore.model.media.MediaFile`
+        :param media_file: The associated media file object.
         :rtype: list
         :returns: All :class:`StorageURI` tuples for this file.
 
         """
-        web_id, embed_lookup = file.unique_id.split(' ')
+        web_id, embed_lookup = media_file.unique_id.split(' ')
         play_url = 'http://blip.tv/play/%s' % embed_lookup
         web_url = 'http://blip.tv/file/%s' % web_id
         return [
-            StorageURI(file, 'bliptv', play_url, None),
-            StorageURI(file, 'www', web_url, None),
+            StorageURI(media_file, 'bliptv', play_url, None),
+            StorageURI(media_file, 'www', web_url, None),
         ]
 
 EmbedStorageEngine.register(BlipTVStorage)

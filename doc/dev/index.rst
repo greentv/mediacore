@@ -19,6 +19,9 @@ and TurboGears2 developers should feel comfortable.
 .. toctree::
 
    api
+   plugins
+   players
+   storage
    templating
    closure
    controllers/index

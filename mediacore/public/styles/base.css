@@ -516,18 +516,23 @@ a:focus .grid-title {
 	float: right;
 	margin-right: -10px;
 }
-.mcore-view-more {
+.mcore-btn-more {
 	position: relative;
 	margin-top: -10px;
 	width: 168px;
 	clear: both;
 	float: left;
+	font-weight: normal;
 }
-.mcore-view-more > span {
+.mcore-btn-more > span {
 	text-align: center;
 }
-.nav-categories-on .mcore-view-more {
+.nav-categories-on .mcore-btn-more {
 	width: 130px;
+}
+#category-content .mcore-btn-more {
+	font-weight: normal;
+	width: 136px;
 }
 
 /* Media details page */
@@ -564,6 +569,7 @@ a:focus .grid-title {
 #media-sidebar {
 	position: relative;
 	z-index: 4;
+	float: right;
 }
 
 .mcore-playerbox {
@@ -928,7 +934,6 @@ textarea {
 .cooliris-cats-btn {
 	padding: 10px 15px;
 	color: #484f5a;
-	font-weight: bold;
 	text-shadow: 0 1px #fff;
 	-webkit-font-smoothing: antialiased;
 }
@@ -963,6 +968,9 @@ textarea {
 	width: 680px;
 	height: 324px;
 	float: left;
+}
+.cooliris-feed-active {
+	font-weight: bold;
 }
 
 #mcore-ad-banner {

@@ -4,10 +4,33 @@
 Miscellaneous Libraries
 =======================
 
-Base
-----
+.. Note to doc writers: Remember that some of the modules in mediacore.lib
+.. import methods and classes from other modules, so you don't need to
+.. explicitly include many of those other modules in the docs.
+.. (e.g. look at the imports in mediacore.lib.helpers and mediacore.lib.decorators)
+
+
+Base Controller Classes
+-----------------------
 
 .. automodule:: mediacore.lib.base
+   :members:
+   :show-inheritance:
+
+
+Templating Helpers
+------------------
+
+.. automodule:: mediacore.lib.templating
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+
+Media Players
+-------------
+
+.. automodule:: mediacore.lib.players
    :members:
    :show-inheritance:
    :undoc-members:
@@ -15,17 +38,9 @@ Base
 
 Decorators
 ----------
+.. includes important parts of mediacore.lib.paginate
 
 .. automodule:: mediacore.lib.decorators
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-
-Embed Types
------------
-
-.. automodule:: mediacore.lib.embedtypes
    :members:
    :show-inheritance:
    :undoc-members:
@@ -38,6 +53,7 @@ File Types
    :show-inheritance:
    :undoc-members:
 
+
 Thumbnail Images
 ----------------
 
@@ -46,9 +62,18 @@ Thumbnail Images
    :show-inheritance:
    :undoc-members:
 
+Email Helpers
+-------------
 
-Helpers
--------
+.. automodule:: mediacore.lib.email
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+
+
+Miscellaneous/Display Helpers
+-----------------------------
 
 .. automodule:: mediacore.lib.helpers
    :members:

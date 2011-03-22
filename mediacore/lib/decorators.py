@@ -25,6 +25,8 @@ from paste.deploy.converters import asbool
 from pylons import request, response, tmpl_context, translator
 from pylons.decorators.cache import create_cache_key, _make_dict_from_args
 from pylons.decorators.util import get_pylons
+from repoze.what.plugins.pylonshq import ActionProtector
+from repoze.what.predicates import has_permission
 from webob.exc import HTTPException, HTTPMethodNotAllowed
 
 from mediacore.lib.paginate import paginate
@@ -67,13 +69,13 @@ def _get_func_attrs(f):
         result[x] = getattr(f, x, (None,))
     return result
 
-def _expose_wrapper(f, template, request_method=None):
+def _expose_wrapper(f, template, request_method=None, permission=None):
     """Returns a function that will render the passed in function according
     to the passed in template"""
     f.exposed = True
 
     # Shortcut for simple expose of strings
-    if template == 'string' and not request_method:
+    if template == 'string' and not request_method and not permission:
         return f
 
     if request_method:
@@ -86,11 +88,11 @@ def _expose_wrapper(f, template, request_method=None):
         result = f(*args, **kwargs)
         tmpl = template
 
-        if tmpl == 'string':
-            return result
-
         if hasattr(request, 'override_template'):
             tmpl = request.override_template
+
+        if tmpl == 'string':
+            return result
 
         if tmpl == 'json':
             if isinstance(result, (list, tuple)):
@@ -118,9 +120,13 @@ def _expose_wrapper(f, template, request_method=None):
                 response.content_type = 'application/xhtml+xml'
 
         return render(tmpl, tmpl_vars=result, method='auto')
+
+    if permission:
+        wrapped_f = ActionProtector(has_permission(permission))(wrapped_f)
+
     return wrapped_f
 
-def expose(template='string', request_method=None):
+def expose(template='string', request_method=None, permission=None):
     """Simple expose decorator for controller actions.
 
     Transparently wraps a method in a function that will render the method's
@@ -152,13 +158,13 @@ def expose(template='string', request_method=None):
 
     """
     def wrap(f):
-        wrapped_f = _expose_wrapper(f, template, request_method)
+        wrapped_f = _expose_wrapper(f, template, request_method, permission)
         _copy_func_attrs(f, wrapped_f)
         return wrapped_f
     return wrap
 
 def expose_xhr(template_norm='string', template_xhr='json',
-               request_method=None):
+               request_method=None, permission=None):
     """
     Expose different templates for normal vs XMLHttpRequest requests.
 
@@ -172,8 +178,8 @@ def expose_xhr(template_norm='string', template_xhr='json',
                 return dict(items=get_items_list())
     """
     def wrap(f):
-        norm = _expose_wrapper(f, template_norm, request_method)
-        xhr = _expose_wrapper(f, template_xhr, request_method)
+        norm = _expose_wrapper(f, template_norm, request_method, permission)
+        xhr = _expose_wrapper(f, template_xhr, request_method, permission)
 
         def choose(*args, **kwargs):
             if request.is_xhr:
@@ -570,17 +576,70 @@ def memoize(func):
 
 @decorator
 def autocommit(func, *args, **kwargs):
-    """Automatically handle database transactions for decorated controller actions"""
+    """Handle database transactions for the decorated controller actions.
+
+    This decorator supports firing callbacks immediately after the
+    transaction is committed or rolled back. This is useful when some
+    external process needs to be called to process some new data, since
+    it should only be called once that data is readable by new transactions.
+
+    .. note:: If your callback makes modifications to the database, you must
+        manually handle the transaction, or apply the @autocommit decorator
+        to the callback itself.
+
+    On the ingress, two attributes are added to the :class:`webob.Request`:
+
+        ``request.commit_callbacks``
+            A list of callback functions that should be called immediately
+            after the DBSession has been committed by this decorator.
+
+        ``request.rollback_callbacks``
+            A list of callback functions that should be called immediately
+            after the DBSession has been rolled back by this decorator.
+
+    On the egress, we determine which callbacks should be called, remove
+    the above attributes from the request, and then call the appropriate
+    callbacks.
+
+    """
+    req = request._current_obj()
+    req.commit_callbacks = []
+    req.rollback_callbacks = []
     try:
         result = func(*args, **kwargs)
     except HTTPException, e:
         if 200 <= e.code < 400:
-            DBSession.commit()
+            _autocommit_commit(req)
         else:
-            DBSession.rollback()
+            _autocommit_rollback(req)
         raise
     except:
-        DBSession.rollback()
+        _autocommit_rollback(req)
         raise
-    DBSession.commit()
-    return result
+    else:
+        _autocommit_commit(req)
+        return result
+
+def _autocommit_commit(req):
+    try:
+        DBSession.commit()
+    except:
+        _autocommit_rollback(req)
+        raise
+    else:
+        _autocommit_fire_callbacks(req, req.commit_callbacks)
+
+def _autocommit_rollback(req):
+    DBSession.rollback()
+    _autocommit_fire_callbacks(req, req.rollback_callbacks)
+
+def _autocommit_fire_callbacks(req, callbacks):
+    # Clear the callback lists from the request so doing crazy things
+    # like applying the autocommit decorator to an autocommit callback won't
+    # conflict.
+    del req.commit_callbacks
+    del req.rollback_callbacks
+    if callbacks:
+        log.debug('@autocommit firing these callbacks: %r', callbacks)
+        for cb in callbacks:
+            cb()

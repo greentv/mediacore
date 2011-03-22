@@ -17,7 +17,7 @@
 form#upload-form, div#bottombar {
 	width: 690px;
 	float: left;
-	margin-bottom: 0.5em;
+	margin-bottom: 1.0em;
 }
 
 .xhtml-description-helper {
@@ -79,9 +79,13 @@ table.field-list .err {
 table.field-list .noerr {
 	background: url('../images/uploader/check.png') no-repeat right center;
 }
+div#browse-button {
+	display: none;
+}
 div#browse-button.active,
 div#browse-button.enabled,
 div#browse-button.browse-button-hover {
+	display: block;
 	float: left;
 	width: 202px;
 	height: 34px;

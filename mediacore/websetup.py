@@ -158,12 +158,11 @@ def add_default_data():
         (u'api_media_max_results', u'50'),
         (u'api_tree_max_depth', u'10'),
         (u'general_site_name', u'MediaCore'),
-        (u'general_tag_line', u''),
-        (u'general_site_title_display_order', u'Prepend'),
+        (u'general_site_title_display_order', u'prepend'),
         (u'sitemaps_display', u'True'),
         (u'rss_display', u'True'),
         (u'vulgarity_filtered_words', u''),
-        (u'primary_language', u''),
+        (u'primary_language', u'en'),
         (u'advertising_banner_html', u''),
         (u'advertising_sidebar_html', u''),
     ]
@@ -298,7 +297,7 @@ def add_default_data():
     ]
 
     name = u'MediaCore Team'
-    email = u'info@simplestation.com'
+    email = u'info@mediacore.com'
     for slug, title, desc, desc_plain, publish_on, duration, url, type_, container in instructional_media:
         media = Media()
         media.author = Author(name, email)

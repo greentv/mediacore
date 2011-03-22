@@ -37,7 +37,7 @@ class VimeoStorage(EmbedStorageEngine):
     url_pattern = re.compile(r'^(http(s?)://)?(\w+\.)?vimeo.com/(?P<id>\d+)')
     """A compiled pattern object that uses named groupings for matches."""
 
-    def _parse(self, url, id):
+    def _parse(self, url, **kwargs):
         """Return metadata for the given URL that matches :attr:`url_pattern`.
 
         :type url: unicode
@@ -49,6 +49,7 @@ class VimeoStorage(EmbedStorageEngine):
         :returns: Any extracted metadata.
 
         """
+        id = kwargs['id']
         vimeo_data_url = 'http://vimeo.com/api/v2/video/%s.%s' % (id, 'json')
 
         # Vimeo API requires us to give a user-agent, to avoid 403 errors.
@@ -74,21 +75,21 @@ class VimeoStorage(EmbedStorageEngine):
             'type': VIDEO,
         }
 
-    def get_uris(self, file):
+    def get_uris(self, media_file):
         """Return a list of URIs from which the stored file can be accessed.
 
-        :type unique_id: unicode
-        :param unique_id: The identifying string for this file.
-
+        :type media_file: :class:`~mediacore.model.media.MediaFile`
+        :param media_file: The associated media file object.
         :rtype: list
         :returns: All :class:`StorageURI` tuples for this file.
 
         """
-        play_url = 'http://player.vimeo.com/video/%s' % file.unique_id
-        web_url = 'http://vimeo.com/%s' % file.unique_id
+        uid = media_file.unique_id
+        play_url = 'http://player.vimeo.com/video/%s' % uid
+        web_url = 'http://vimeo.com/%s' % uid
         return [
-            StorageURI(file, 'vimeo', play_url, None),
-            StorageURI(file, 'www', web_url, None),
+            StorageURI(media_file, 'vimeo', play_url, None),
+            StorageURI(media_file, 'www', web_url, None),
         ]
 
 EmbedStorageEngine.register(VimeoStorage)

@@ -25,6 +25,11 @@ directory and Installation directory, respectively.
 the correct versions for your installation. For example, with `MediaCore-0.8.2`
 and `MediaCore-0.9.0`, respectively.
 
+**NOTE 4:** If you're a developer type, and you're tracking the latest changes
+using git, you'll want to run `paster setup-app development.ini` after fetching
+any new changes. This will ensure that your custom appearance css and your
+Players table are up to date.
+
 
 Step 1: Re-Create Your Virtual Environment
 ------------------------------------------
@@ -106,7 +111,7 @@ b. If you are upgrading from MediaCore **0.9.0 or newer**, you'll need to
       cd ..
 
       # Move over the old files
-      mv ./MediaCore-OLD/data/media/* ./MediaCore-NEW/data/deleted/
+      mv ./MediaCore-OLD/data/media/* ./MediaCore-NEW/data/media/
       mv ./MediaCore-OLD/data/deleted/* ./MediaCore-NEW/data/deleted/
       mv ./MediaCore-OLD/data/appearance/* ./MediaCore-NEW/data/appearance/
       mv ./MediaCore-OLD/data/images/media/[0-9]* ./MediaCore-NEW/data/images/media/
@@ -136,7 +141,7 @@ Step 5: Upgrading Your Database
 This step is slightly different depending on which version you are upgrading
 from. See the individual commands below:
 
-a.  Or, if you're upgrading from **0.7.2** (released January 2010):
+a.  If you're upgrading from **0.7.2** (released January 2010):
 
    .. sourcecode:: bash
 
@@ -154,7 +159,7 @@ b.  Or, if you're upgrading from **0.8.0** (released May 2010):
       python batch-scripts/upgrade/upgrade-from-v080.py yourconf.ini
 
 
-c.  If you're upgrading from **0.8.2, 0.9.0, or newer** (released after August 2010):
+c.  Or, if you're upgrading from **0.8.2, 0.9.0, or newer** (released after August 2010):
 
    .. sourcecode:: bash
 

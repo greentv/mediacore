@@ -17,13 +17,11 @@ Tags
 .. autofunction:: fetch_and_create_tags
 
 
-Topics
-------
+Categories
+----------
 
 .. automodule:: mediacore.model.categories
 
 .. autoclass:: Category
    :members:
-
-.. autofunction:: fetch_categories
 

@@ -14,15 +14,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from types import NoneType
 
 # Module description following the guidelines at:
 # http://bayes.colorado.edu/PythonGuidelines.html#module_formatting
-__version__ = '0.9.0b3'
+__version__ = '0.9.0'
 __status__ = 'Beta'
 __copyright__ = 'Copyright 2009-2010, Simple Station Inc.'
 __license__ = 'GPLv3'
-__email__ = 'info@simplestation.com'
+__email__ = 'info@mediacore.com'
 __maintainer__ = 'http://getmediacore.com/'
 __all__ = ['__version__', 'debug', 'ipython']
 
